@@ -1,0 +1,29 @@
+version: "2"
+services:
+  notecard:
+    build: ./balena-notecard/src
+    devices:
+      - "/dev/i2c-1:/dev/i2c-1"
+    expose:
+      - "8080"
+    privileged: true
+  
+  pool-tank:
+    build: ./pool-tank
+    privileged: true
+    restart: always
+    network_mode: host
+    labels:
+            io.balena.features.dbus: '1'
+            io.balena.features.kernel-modules: '1'
+    volumes: 
+            - 'shared-data:/var/data'
+            - 'shared-media:/var/media'
+    environment:
+            - UDEV=1
+    devices:
+            - '/dev:/dev'
+
+volumes:
+        shared-data:
+        shared-media:
