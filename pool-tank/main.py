@@ -2,8 +2,6 @@ import json
 import requests
 import os
 import time
-from periphery import I2C
-import notecard
 import sys
 import cv2
 from edge_impulse_linux.image import ImageImpulseRunner
@@ -16,6 +14,7 @@ print(f'Using model at {modelfile}')
 print("Connecting to Notecard...")
 
 url = "http://notecard:8080"
+#url = "http://localhost:8080"
 headers = {"Content-Type": "application/json"}
 
 
@@ -39,7 +38,8 @@ def get_webcams():
   return port_ids
 
 def main():
-  print(f'Configuring Product: ...')
+  print('Configuring Product: ...')
+
   req = {"req": "hub.set"}
   req["product"] = "com.blues.tvantoll:weather"
   req["mode"] = "continuous"

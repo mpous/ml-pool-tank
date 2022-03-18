@@ -1,7 +1,8 @@
 version: "2"
 services:
   notecard:
-    image: "tjvantoll/balena-notecard"
+    build: ./balena-notecard/src
+    #image: bh.cr/tj/balena-notecard
     devices:
       - "/dev/i2c-1:/dev/i2c-1"
     expose:
