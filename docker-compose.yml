@@ -5,15 +5,13 @@ services:
     #image: bh.cr/tj/balena-notecard
     devices:
       - "/dev/i2c-1:/dev/i2c-1"
-    expose:
-      - "8080"
+    ports:
+      - 8080:8080
     privileged: true
-  
   pool-tank:
     build: ./pool-tank
     privileged: true
     restart: always
-    network_mode: host
     labels:
             io.balena.features.dbus: '1'
             io.balena.features.kernel-modules: '1'

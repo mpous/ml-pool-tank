@@ -8,13 +8,10 @@ from edge_impulse_linux.image import ImageImpulseRunner
 
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-modelfile = os.path.join(dir_path, '../model/model.eim')
+modelfile = os.path.join(dir_path, 'model/model.eim')
 print(f'Using model at {modelfile}')
 
-print("Connecting to Notecard...")
-
 url = "http://notecard:8080"
-#url = "http://localhost:8080"
 headers = {"Content-Type": "application/json"}
 
 
@@ -38,14 +35,17 @@ def get_webcams():
   return port_ids
 
 def main():
-  print('Configuring Product: ...')
+  print("Connecting to Notecard...")
 
   req = {"req": "hub.set"}
   req["product"] = "com.blues.tvantoll:weather"
   req["mode"] = "continuous"
 
-  result = requests.post(url, json=req, headers=headers)
-  print(result.text)
+  try:
+    result = requests.post(url, json=req, headers=headers)
+    print(result.text)
+  except Exception as e:
+    print(e)
 
 main()
 
@@ -58,7 +58,12 @@ while True:
       print('Loaded runner for "' + model_info['project']['owner'] + ' / ' + model_info['project']['name'] + ' (v' + str(model_info['project']['deploy_version']) + ')"')
       labels = model_info['model_parameters']['labels']
 
-      videoCaptureDeviceId = 0
+      #videoCaptureDeviceId = 0
+      port_ids = get_webcams()
+      if len(port_ids) == 0:
+          raise Exception('Cannot find any webcams')
+
+      videoCaptureDeviceId = int(port_ids[0])
 
       camera = cv2.VideoCapture(videoCaptureDeviceId)
       ret = camera.read()[0]
