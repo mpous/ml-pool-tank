@@ -1,21 +1,19 @@
 import json
+import requests
 import os
 import time
-from periphery import I2C
-import notecard
 import sys
 import cv2
 from edge_impulse_linux.image import ImageImpulseRunner
 
-productUID = "<com.blues.your_name:your_project>"
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-modelfile = os.path.join(dir_path, '../model/model.eim')
+modelfile = os.path.join(dir_path, 'model.eim')
 print(f'Using model at {modelfile}')
 
-print("Connecting to Notecard...")
-port = I2C("/dev/i2c-1")
-card = notecard.OpenI2C(port, 0, 0, debug=True)
+url = "http://notecard:8080"
+headers = {"Content-Type": "application/json"}
+
 
 def now():
   return round(time.time() * 1000)
@@ -37,16 +35,17 @@ def get_webcams():
   return port_ids
 
 def main():
-  print(f'Configuring Product: {productUID}...')
+  print("Connecting to Notecard...")
 
   req = {"req": "hub.set"}
-  req["product"] = productUID
-  req["mode"] = "periodic"
-  req["outbound"] = 60
-  req["inbound"] = 120
-  req["align"] = True
+  req["product"] = "com.blues.tvantoll:weather"
+  req["mode"] = "continuous"
 
-  card.Transaction(req)
+  try:
+    result = requests.post(url, json=req, headers=headers)
+    print(result.text)
+  except Exception as e:
+    print(e)
 
 main()
 
@@ -59,8 +58,13 @@ while True:
       print('Loaded runner for "' + model_info['project']['owner'] + ' / ' + model_info['project']['name'] + ' (v' + str(model_info['project']['deploy_version']) + ')"')
       labels = model_info['model_parameters']['labels']
 
-      videoCaptureDeviceId = 0
+      #videoCaptureDeviceId = 0
+      port_ids = get_webcams()
+      if len(port_ids) == 0:
+          raise Exception('Cannot find any webcams')
 
+      videoCaptureDeviceId = int(port_ids[0])
+      
       camera = cv2.VideoCapture(videoCaptureDeviceId)
       ret = camera.read()[0]
 
@@ -102,7 +106,9 @@ while True:
             note_body["classification"] = res['result']['classification']
             req["body"] = note_body
 
-            card.Transaction(req)
+            #card.Transaction(req)
+            result = requests.post(url, json=req, headers=headers)
+            print(result.text)
 
             # If the state is low or high, send a different Note with an
             # alert message
@@ -111,10 +117,14 @@ while True:
             req["file"] = "tank-alert.qo"
             if inferred_state == 'tank-pressure-low':
               req["body"] = {"message": "Tank pressure is low. Clean impeller."}
-              card.Transaction(req)
+              result = requests.post(url, json=req, headers=headers)
+              print(result.text)
+              #card.Transaction(req)
             elif inferred_state == 'tank-pressure-high':
               req["body"] = {"message": "Tank pressure is high. Backwash filter."}
-              card.Transaction(req)
+              result = requests.post(url, json=req, headers=headers)
+              print(result.text)
+              #card.Transaction(req)
           break
     finally:
       if (runner):
