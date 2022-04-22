@@ -1,18 +1,19 @@
 version: "2"
 services:
+
   notecard:
-    build: ./balena-notecard/src
+    #image: bh.cr/tj/balena-notecard
+    image: bhcr.io/tj/balena-notecard
     devices:
       - "/dev/i2c-1:/dev/i2c-1"
-    expose:
-      - "8080"
+    ports:
+      - 8080:8080
     privileged: true
-  
+
   pool-tank:
-    build: ./pool-tank
+    build: ./src
     privileged: true
     restart: always
-    network_mode: host
     labels:
             io.balena.features.dbus: '1'
             io.balena.features.kernel-modules: '1'
